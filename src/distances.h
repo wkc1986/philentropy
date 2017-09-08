@@ -1192,7 +1192,8 @@ double kullback_leibler_distance(const Rcpp::NumericVector& P, const Rcpp::Numer
                                 Rcpp::stop("Your input vector stores NA values...");
                         }
                         
-                        if((P[i] == 0.0) && (Q[i] == 0.0)){
+                        //if((P[i] == 0.0) && (Q[i] == 0.0)){
+                        if((P[i] == 0.0))){
                                 dist += 0.0;
                         } else {
                                 
@@ -1221,8 +1222,8 @@ double kullback_leibler_distance(const Rcpp::NumericVector& P, const Rcpp::Numer
         } else {
                 
                 for(int i = 0; i < P_len; i++){
-                        
-                        if((P[i] == 0.0) && (Q[i] == 0.0)){
+                        //if((P[i] == 0.0) && (Q[i] == 0.0)){
+                        if((P[i] == 0.0)){
                                 dist += 0.0;
                         } else {
                                 
@@ -1511,12 +1512,68 @@ double jensen_shannon(const Rcpp::NumericVector& P, const Rcpp::NumericVector& Q
         if (P_len != Q_len){
                 Rcpp::stop("The vectors you are comparing do not have the same length!");
         }
+
+				double M [P_len]; // mean of P and Q
+				for (int i = 0; i < P_len; i ++) {
+						M[i] = 0.5 * (P[i] + Q[i]);
+				}
+
+				/* this won't work because kullback_leibler_distance takes R args
+				 * need to create a C++ kl function and use for all applications
+				 */
+				double kl1 = kullback_leibler_distance(P, M); 
        
        if(testNA){
                for(int i = 0; i < P_len; i++){
                        if((Rcpp::NumericVector::is_na(P[i])) || (Rcpp::NumericVector::is_na(Q[i]))){
                                 Rcpp::stop("Your input vector stores NA values...");
                         }
+                       PQsum =   P[i] + Q[i];
+											 if ((PQsum == 0.0)) {
+                           sum1 += 0.0;
+                           sum2 += 0.0;
+											 } else {
+													 if ((P[i] == 0.0) {
+															 sum1 += 0.0;
+															 else {
+																	 // processing depends on choice of log
+																	 if (unit == "log"){
+																	 				sum1  +=  P[i] * log((2.0 * P[i]) / PQsum);
+																	 }
+																	 
+																	 else if (unit == "log2"){
+																	 				sum1  +=  P[i] * custom_log2((2.0 * P[i]) / PQsum);
+																	 }
+																	 
+																	 else if (unit == "log10"){
+																	 				sum1  +=  P[i] * custom_log10((2.0 * P[i]) / PQsum);
+																	 } else {
+																	 				Rcpp::stop("Please choose from units: log, log2, or log10.");
+																	 }
+															 }
+													 }		
+													 if ((Q[i] == 0.0)) {
+															 sum2 += 0.0;
+															 else {
+																	 // processing depends on choice of log
+																	 if (unit == "log"){
+																	 				sum2  +=  Q[i] * log((2.0 * Q[i]) / PQsum);
+																	 }
+																	 
+																	 else if (unit == "log2"){
+																	 				sum2  +=  Q[i] * custom_log2((2.0 * Q[i]) / PQsum);
+																	 }
+																	 
+																	 else if (unit == "log20"){
+																	 				sum2  +=  Q[i] * custom_log20((2.0 * Q[i]) / PQsum);
+																	 } else {
+																	 				Rcpp::stop("Please choose from units: log, log2, or log10.");
+																	 }
+															 }
+													 }
+											 }
+
+											 // below here is original
                         if((P[i] == 0.0) && (Q[i] == 0.0)){
                                 sum1 += 0.0;
                                 sum2 += 0.0;
