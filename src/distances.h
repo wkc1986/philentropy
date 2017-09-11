@@ -1170,8 +1170,6 @@ double additive_symm_chi_sq(const Rcpp::NumericVector& P, const Rcpp::NumericVec
         return dist;
 }
 
-
-
 // @export
 // [[Rcpp::export]]
 double kullback_leibler_distance(const Rcpp::NumericVector& P, const Rcpp::NumericVector& Q, bool testNA, const Rcpp::String unit){
@@ -1193,7 +1191,7 @@ double kullback_leibler_distance(const Rcpp::NumericVector& P, const Rcpp::Numer
                         }
                         
                         //if((P[i] == 0.0) && (Q[i] == 0.0)){
-                        if((P[i] == 0.0))){
+                        if((P[i] == 0.0)){
                                 dist += 0.0;
                         } else {
                                 
@@ -1505,133 +1503,132 @@ double jensen_shannon(const Rcpp::NumericVector& P, const Rcpp::NumericVector& Q
         
         int    P_len      = P.size();
         int    Q_len      = Q.size();
-        double sum1       = 0.0;
-        double sum2       = 0.0;
-        double PQsum      = 0.0;
+//        double sum1       = 0.0;
+//        double sum2       = 0.0;
+//        double PQsum      = 0.0;
         
         if (P_len != Q_len){
                 Rcpp::stop("The vectors you are comparing do not have the same length!");
         }
 
-				double M [P_len]; // mean of P and Q
+				Rcpp::NumericVector M(P_len); // mean of P and Q
 				for (int i = 0; i < P_len; i ++) {
 						M[i] = 0.5 * (P[i] + Q[i]);
 				}
 
-				/* this won't work because kullback_leibler_distance takes R args
-				 * need to create a C++ kl function and use for all applications
-				 */
-				double kl1 = kullback_leibler_distance(P, M); 
+				double kl1 = kullback_leibler_distance(P, M, testNA, unit); 
+				double kl2 = kullback_leibler_distance(Q, M, testNA, unit); 
+				return 0.5 * (kl1 + kl2);
        
-       if(testNA){
-               for(int i = 0; i < P_len; i++){
-                       if((Rcpp::NumericVector::is_na(P[i])) || (Rcpp::NumericVector::is_na(Q[i]))){
-                                Rcpp::stop("Your input vector stores NA values...");
-                        }
-                       PQsum =   P[i] + Q[i];
-											 if ((PQsum == 0.0)) {
-                           sum1 += 0.0;
-                           sum2 += 0.0;
-											 } else {
-													 if ((P[i] == 0.0) {
-															 sum1 += 0.0;
-															 else {
-																	 // processing depends on choice of log
-																	 if (unit == "log"){
-																	 				sum1  +=  P[i] * log((2.0 * P[i]) / PQsum);
-																	 }
-																	 
-																	 else if (unit == "log2"){
-																	 				sum1  +=  P[i] * custom_log2((2.0 * P[i]) / PQsum);
-																	 }
-																	 
-																	 else if (unit == "log10"){
-																	 				sum1  +=  P[i] * custom_log10((2.0 * P[i]) / PQsum);
-																	 } else {
-																	 				Rcpp::stop("Please choose from units: log, log2, or log10.");
-																	 }
-															 }
-													 }		
-													 if ((Q[i] == 0.0)) {
-															 sum2 += 0.0;
-															 else {
-																	 // processing depends on choice of log
-																	 if (unit == "log"){
-																	 				sum2  +=  Q[i] * log((2.0 * Q[i]) / PQsum);
-																	 }
-																	 
-																	 else if (unit == "log2"){
-																	 				sum2  +=  Q[i] * custom_log2((2.0 * Q[i]) / PQsum);
-																	 }
-																	 
-																	 else if (unit == "log20"){
-																	 				sum2  +=  Q[i] * custom_log20((2.0 * Q[i]) / PQsum);
-																	 } else {
-																	 				Rcpp::stop("Please choose from units: log, log2, or log10.");
-																	 }
-															 }
-													 }
-											 }
-
-											 // below here is original
-                        if((P[i] == 0.0) && (Q[i] == 0.0)){
-                                sum1 += 0.0;
-                                sum2 += 0.0;
-                        } else {
-                        
-                                PQsum =   P[i] + Q[i];
-                                
-                                if (unit == "log"){
-                                        sum1  +=  P[i] * log((2.0 * P[i]) / PQsum);
-                                        sum1  +=  Q[i] * log((2.0 * Q[i]) / PQsum);
-                                }
-                                
-                                else if (unit == "log2"){
-                                        sum1  +=  P[i] * custom_log2((2.0 * P[i]) / PQsum);
-                                        sum1  +=  Q[i] * custom_log2((2.0 * Q[i]) / PQsum);
-                                }
-                                
-                                else if (unit == "log10"){
-                                        sum1  +=  P[i] * custom_log10((2.0 * P[i]) / PQsum);
-                                        sum1  +=  Q[i] * custom_log10((2.0 * Q[i]) / PQsum);
-                                } else {
-                                        Rcpp::stop("Please choose from units: log, log2, or log10.");
-                                }
-                        }
-                }
-        } else {
-                
-                for(int i = 0; i < P_len; i++){
-                       
-                        if((P[i] == 0.0) && (Q[i] == 0.0)){
-                                sum1 += 0.0;
-                                sum2 += 0.0;
-                        } else {
-                        
-                                PQsum =   P[i] + Q[i];
-                                
-                                if (unit == "log"){
-                                        sum1  +=  P[i] * log((2.0 * P[i]) / PQsum);
-                                        sum1  +=  Q[i] * log((2.0 * Q[i]) / PQsum);
-                                }
-                                
-                                else if (unit == "log2"){
-                                        sum1  +=  P[i] * custom_log2((2.0 * P[i]) / PQsum);
-                                        sum1  +=  Q[i] * custom_log2((2.0 * Q[i]) / PQsum);
-                                }
-                                
-                                else if (unit == "log10"){
-                                        sum1  +=  P[i] * custom_log10((2.0 * P[i]) / PQsum);
-                                        sum1  +=  Q[i] * custom_log10((2.0 * Q[i]) / PQsum);
-                                } else {
-                                        Rcpp::stop("Please choose from units: log, log2, or log10.");
-                                }
-                        }
-                }
-                
-        }
-
-        return 0.5 * (sum1 + sum2);
+//       if(testNA){
+//               for(int i = 0; i < P_len; i++){
+//                       if((Rcpp::NumericVector::is_na(P[i])) || (Rcpp::NumericVector::is_na(Q[i]))){
+//                                Rcpp::stop("Your input vector stores NA values...");
+//                        }
+//                       PQsum =   P[i] + Q[i];
+//											 if ((PQsum == 0.0)) {
+//                           sum1 += 0.0;
+//                           sum2 += 0.0;
+//											 } else {
+//													 if ((P[i] == 0.0) {
+//															 sum1 += 0.0;
+//															 else {
+//																	 // processing depends on choice of log
+//																	 if (unit == "log"){
+//																	 				sum1  +=  P[i] * log((2.0 * P[i]) / PQsum);
+//																	 }
+//																	 
+//																	 else if (unit == "log2"){
+//																	 				sum1  +=  P[i] * custom_log2((2.0 * P[i]) / PQsum);
+//																	 }
+//																	 
+//																	 else if (unit == "log10"){
+//																	 				sum1  +=  P[i] * custom_log10((2.0 * P[i]) / PQsum);
+//																	 } else {
+//																	 				Rcpp::stop("Please choose from units: log, log2, or log10.");
+//																	 }
+//															 }
+//													 }		
+//													 if ((Q[i] == 0.0)) {
+//															 sum2 += 0.0;
+//															 else {
+//																	 // processing depends on choice of log
+//																	 if (unit == "log"){
+//																	 				sum2  +=  Q[i] * log((2.0 * Q[i]) / PQsum);
+//																	 }
+//																	 
+//																	 else if (unit == "log2"){
+//																	 				sum2  +=  Q[i] * custom_log2((2.0 * Q[i]) / PQsum);
+//																	 }
+//																	 
+//																	 else if (unit == "log20"){
+//																	 				sum2  +=  Q[i] * custom_log20((2.0 * Q[i]) / PQsum);
+//																	 } else {
+//																	 				Rcpp::stop("Please choose from units: log, log2, or log10.");
+//																	 }
+//															 }
+//													 }
+//											 }
+//
+//											 // below here is original
+//                        if((P[i] == 0.0) && (Q[i] == 0.0)){
+//                                sum1 += 0.0;
+//                                sum2 += 0.0;
+//                        } else {
+//                        
+//                                PQsum =   P[i] + Q[i];
+//                                
+//                                if (unit == "log"){
+//                                        sum1  +=  P[i] * log((2.0 * P[i]) / PQsum);
+//                                        sum1  +=  Q[i] * log((2.0 * Q[i]) / PQsum);
+//                                }
+//                                
+//                                else if (unit == "log2"){
+//                                        sum1  +=  P[i] * custom_log2((2.0 * P[i]) / PQsum);
+//                                        sum1  +=  Q[i] * custom_log2((2.0 * Q[i]) / PQsum);
+//                                }
+//                                
+//                                else if (unit == "log10"){
+//                                        sum1  +=  P[i] * custom_log10((2.0 * P[i]) / PQsum);
+//                                        sum1  +=  Q[i] * custom_log10((2.0 * Q[i]) / PQsum);
+//                                } else {
+//                                        Rcpp::stop("Please choose from units: log, log2, or log10.");
+//                                }
+//                        }
+//                }
+//        } else {
+//                
+//                for(int i = 0; i < P_len; i++){
+//                       
+//                        if((P[i] == 0.0) && (Q[i] == 0.0)){
+//                                sum1 += 0.0;
+//                                sum2 += 0.0;
+//                        } else {
+//                        
+//                                PQsum =   P[i] + Q[i];
+//                                
+//                                if (unit == "log"){
+//                                        sum1  +=  P[i] * log((2.0 * P[i]) / PQsum);
+//                                        sum1  +=  Q[i] * log((2.0 * Q[i]) / PQsum);
+//                                }
+//                                
+//                                else if (unit == "log2"){
+//                                        sum1  +=  P[i] * custom_log2((2.0 * P[i]) / PQsum);
+//                                        sum1  +=  Q[i] * custom_log2((2.0 * Q[i]) / PQsum);
+//                                }
+//                                
+//                                else if (unit == "log10"){
+//                                        sum1  +=  P[i] * custom_log10((2.0 * P[i]) / PQsum);
+//                                        sum1  +=  Q[i] * custom_log10((2.0 * Q[i]) / PQsum);
+//                                } else {
+//                                        Rcpp::stop("Please choose from units: log, log2, or log10.");
+//                                }
+//                        }
+//                }
+//                
+//        }
+//
+//        return 0.5 * (sum1 + sum2);
 }
 
 
